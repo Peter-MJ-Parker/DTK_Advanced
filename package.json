@@ -1,0 +1,27 @@
+{
+  "name": "dtk_advanced",
+  "description": "Advanced version of DevToolkit, an all-in-one Discord bot and handler to create a bot with ease.",
+  "version": "2.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "install": "npm install",
+    "install:nodemon": "npm i -D nodemon@latest",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "Peter-MJ-Parker",
+  "maintainers": [
+    {
+      "name": "Peter-MJ-Parker",
+      "url": "https://github.com/Peter-MJ-Parker"
+    }
+  ],
+  "license": "UNLICENSED",
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0",
+    "mongoose": "^8.15.0"
+  }
+}
