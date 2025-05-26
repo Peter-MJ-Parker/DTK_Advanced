@@ -42,7 +42,7 @@ module.exports = class Cooldowns {
 
       const results = await cooldownSchema.find({});
       for (const result of results) {
-        const { id, expires } = result;
+        const { _id: id, expires } = result;
         this.#_cooldowns.set(id, expires);
       }
       this.#_logger.success('[COOLDOWNS]- Successfully Loaded Cooldowns!');
@@ -132,89 +132,73 @@ module.exports = class Cooldowns {
     const { duration, userId } = cooldownUsage;
     if (this.#_botOwnersBypass === true && (Array.isArray(Owners) ? Owners.includes(userId) : Owners === userId)) {
       return true;
-    }
-    try {
-      const seconds = this.verifyCooldown(duration);
-      const key = this.#getKey(cooldownUsage);
-      const _exists = this.#_cooldowns.get(key);
+    } else {
+      try {
+        const seconds = this.verifyCooldown(duration);
+        const key = this.#getKey(cooldownUsage);
+        const _exists = this.#_cooldowns.get(key);
 
-      if (!_exists) {
-        const expires = new Date();
-        expires.setSeconds(expires.getSeconds() + seconds);
-        this.#_cooldowns.set(key, expires);
-        await cooldownSchema.create({
-          id: key,
-          expires,
-          count: 0
-        });
-        return true;
-      } else {
-        const _remainingTime = Math.max(_exists.getTime() - Date.now(), 0);
-        const newSeconds = new Date().getSeconds();
-        const _newExpires = new Date(_remainingTime + seconds + newSeconds);
-
-        if (new Date() > _exists) {
-          this.#_cooldowns.delete(key);
-          await cooldownSchema.deleteOne({
-            _id: key
+        if (!_exists) {
+          const expires = new Date();
+          expires.setSeconds(expires.getSeconds() + seconds);
+          this.#_cooldowns.set(key, expires);
+          await cooldownSchema.create({
+            id: key,
+            expires,
+            count: 0
           });
           return true;
-        }
+        } else {
+          const _remainingTime = Math.max(_exists.getTime() - Date.now(), 0);
+          const newSeconds = new Date().getSeconds();
+          const _newExpires = new Date(_remainingTime + seconds + newSeconds);
 
-        let str = '';
-        const current = await cooldownSchema.findById(key);
-        if (current && current.count === 0) {
-          str = this.#_errorMessage
-            .replace('{TIME}', `<t:${Math.floor(_exists.getTime() / 1000)}:R>`)
-            .replace('{FEATURE}', cooldownUsage.actionId.split('_')[0]);
-          await cooldownSchema.updateOne(
-            {
+          if (new Date() > _exists) {
+            this.#_cooldowns.delete(key);
+            await cooldownSchema.deleteOne({
               _id: key
-            },
-            {
-              $inc: { count: 1 }
-            }
-          );
-        }
-        if (current && current.count === 1) {
-          _newExpires.setSeconds(_newExpires.getSeconds() + seconds + _remainingTime);
+            });
+            return true;
+          }
 
-          this.#_cooldowns.set(key, _newExpires);
-          await cooldownSchema.updateOne(
-            {
-              _id: key
-            },
-            {
+          const current = await cooldownSchema.findById(key);
+          if (current && current.count === 0) {
+            await current.updateOne({
               $inc: { count: 1 }
-            }
-          );
-          str = 'Try that again before your cooldown expires and your cooldown time will be increased!';
-        }
-        if (current?.count && current.count > 1) {
-          await cooldownSchema.updateOne(
-            {
-              _id: key
-            },
-            {
+            });
+            return this.#_errorMessage
+              .replace('{TIME}', `<t:${Math.floor(_exists.getTime() / 1000)}:R>`)
+              .replace('{FEATURE}', cooldownUsage.actionId.split('_')[0]);
+          } else if (current && current.count === 1) {
+            _newExpires.setSeconds(_newExpires.getSeconds() + seconds + _remainingTime);
+
+            this.#_cooldowns.set(key, _newExpires);
+            await current.updateOne({
+              $inc: { count: 1 }
+            });
+
+            return 'Try that again before your cooldown expires and your cooldown time will be increased!';
+          } else if (current?.count && current.count > 1) {
+            await current.updateOne({
               $inc: { count: 1 },
               expires: _newExpires
-            }
-          );
-          str = `Congrats on your inability to obey cooldown times! Your new time is: <t:${Math.floor(
-            _newExpires.getTime() / 1000
-          )}:R>`;
+            });
+            return `Congrats on your inability to obey cooldown times! Your new time is: <t:${Math.floor(
+              _newExpires.getTime() / 1000
+            )}:R>`;
+          }
+          return false;
         }
-        return str;
+      } catch (error) {
+        const errMessage = '[COOLDOWNS]- Error occured in cooldowns! ' + error;
+        console.error(errMessage);
+        const reply = 'There was an error implementing cooldowns! This error has been sent to the Developer!';
+        const main = `\`\`\`\n${errMessage}\n\`\`\``;
+        return {
+          reply,
+          main
+        };
       }
-    } catch (error) {
-      const errMessage = '[COOLDOWNS]- Error occured in cooldowns! ' + error;
-      console.error(errMessage);
-      const reply = 'There was an error implementing cooldowns! This error has been sent to the Developer!';
-      const main = `\`\`\`\n${errMessage}\n\`\`\``;
-      return {
-        reply,
-        main
-      };
     }
   }
 };
