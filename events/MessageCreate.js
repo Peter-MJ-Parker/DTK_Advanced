@@ -39,12 +39,13 @@ module.exports = EventModule({
         }
       }
       /**
-       * @type {import('./types.d.ts').CooldownUsage}
+       * @type {import('../utils/types.d.ts').CooldownUsage}
        */
-      const cooldownUsage = module.cooldown;
+      const cooldownUsage = command.cooldown;
 
       if (cooldownUsage) {
         const result = await getResult(message, cooldownUsage);
+        console.log(result);
         if (result !== true) {
           return;
         }
@@ -73,13 +74,14 @@ module.exports = EventModule({
         channelId: message.channelId
       };
       const result = await cooldowns.start(cooldownUsage);
+      if (result === false) return client.log.warn(`Cooldown returned:`, false);
       if (typeof result === 'object') {
         await client.users.cache
           .get(Array.isArray(Owners) ? Owners[0] : Owners)
           ?.send({
             content: result.main
           })
-          .catch(() => null);
+          .catch(() => client.log.warn(`Failed to send cooldown message to owner: ${result.main}`));
         return await message.reply({
           content: result.reply
         });

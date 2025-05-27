@@ -14,19 +14,18 @@ module.exports = client => {
   const commandNames = [];
 
   for (const [_, command] of client.commands) {
-    const commandData = command;
-    commandData.dm_permission ??= false;
+    command.dm_permission ??= false;
     try {
-      if (!commandData) throw `No command.data found - Did you forget to save the file?`;
-      if (commandNames.includes(commandData?.name)) continue;
-      commandNames.push(commandData.name);
+      if (!command) throw `No command data found - Did you forget to save the file?`;
+      if (commandNames.includes(command?.name)) continue;
+      commandNames.push(command.name);
       if (command.dev) {
-        devCommands.push(commandData);
+        devCommands.push(command);
       } else {
-        commands.push(commandData);
+        commands.push(command);
       }
     } catch (error) {
-      client.log.error(`Failed to register ${commandData.name}: `, error);
+      client.log.error(`Failed to register ${command.name}: `, error);
     }
   }
 

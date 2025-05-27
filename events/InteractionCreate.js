@@ -4,7 +4,7 @@ const { InteractionHandler, EventModule } = require('../utils');
 module.exports = EventModule({
   name: Events.InteractionCreate,
   async execute(client, interaction) {
-    if (interaction.isCommand() || interaction.isAutocomplete()) {
+    if (interaction.isCommand()) {
       await InteractionHandler(client, interaction, 'commands');
     } else if (interaction.isButton()) {
       await InteractionHandler(client, interaction, 'buttons');
