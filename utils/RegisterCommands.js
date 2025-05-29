@@ -14,7 +14,19 @@ module.exports = client => {
   const commandNames = [];
   const commandMap = new Map();
 
-  for (const [_, command] of client.commands) {
+  for (const [name, command] of client.commands) {
+    commandMap.set(name, command);
+  }
+
+  for (const [name, command] of client.userContextCommands) {
+    commandMap.set(name, command);
+  }
+
+  for (const [name, command] of client.messageContextCommands) {
+    commandMap.set(name, command);
+  }
+
+  for (const [_, command] of commandMap) {
     command.dm_permission ??= false;
     try {
       if (!command) throw `No command data found - Did you forget to save the file?`;

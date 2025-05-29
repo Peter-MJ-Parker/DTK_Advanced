@@ -1,7 +1,7 @@
 const { ReadFolder, DTKExtendedClient } = require('.');
 const { existsSync } = require('node:fs');
 
-const modules = ['commands', 'buttons', 'menus', 'modals', 'prefix'];
+const modules = ['commands', 'buttons', 'menus', 'modals', 'prefix', 'ctxuser', 'ctxmessage'];
 
 /**
  *
@@ -21,6 +21,14 @@ module.exports = function (client) {
           if (!data.name) throw 'No command name has been set';
           if (typeof data.name !== 'string') throw 'Invalid command name - Must be string';
           client.commands.set(data.name, data);
+        } else if (module === 'ctxuser') {
+          if (!data.name) throw 'No command name has been set';
+          if (typeof data.name !== 'string') throw 'Invalid command name - Must be string';
+          client.userContextCommands.set(data.name, data);
+        } else if (module === 'ctxmessage') {
+          if (!data.name) throw 'No command name has been set';
+          if (typeof data.name !== 'string') throw 'Invalid command name - Must be string';
+          client.messageContextCommands.set(data.name, data);
         } else if (module === 'prefix') {
           if (!data.name) throw 'No command name has been set';
           if (typeof data.name !== 'string') throw 'Invalid command name - Must be string';
