@@ -8,7 +8,7 @@ const MongoConnect = require('./MongoConnect.js');
 const ReadFolder = require('./ReadFolder.js');
 const RegisterCommands = require('./RegisterCommands.js');
 const Cooldowns = require('./Cooldowns.js');
-
+const { CooldownTypes } = require('./types.d.ts');
 /**
  *
  * @param {boolean | undefined} enabled
@@ -80,6 +80,7 @@ module.exports = {
   ComponentLoader,
   containsUserId,
   Cooldowns,
+  CooldownTypes,
   createModal,
   EventLoader,
   EventModule,
