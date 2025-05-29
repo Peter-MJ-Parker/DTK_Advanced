@@ -23,8 +23,8 @@ const EventModule = options => {
  * @returns
  */
 const CommandModule = mod => {
-  if (!mod.name || typeof mod.execute !== 'function') {
-    throw new Error('CommandModule requires a name and an execute function.');
+  if (!mod.name || !mod.type || typeof mod.execute !== 'function') {
+    throw new Error('CommandModule requires a name, type and an execute function.');
   }
 
   if (mod.type === CommandType.Slash || mod.type === CommandType.Text) {
