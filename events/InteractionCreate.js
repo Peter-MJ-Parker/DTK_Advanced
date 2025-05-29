@@ -45,9 +45,9 @@ module.exports = EventModule({
 
     try {
       const argsArray = getArgsArray(interaction);
-      if (containsUserId(interaction, argsArray)) {
+      if (argsArray && containsUserId(interaction, argsArray)) {
         if (interaction.user.id !== argsArray[argsArray.length - 1]) {
-          return await interaction.reply({
+          return await interaction.followUp({
             content: `⚠️ This interaction is not for you!`,
             flags: 64
           });
