@@ -38,9 +38,7 @@ module.exports = EventModule({
           return;
         }
       }
-      /**
-       * @type {import('../utils/types.d.ts').CooldownUsage}
-       */
+
       const cooldownUsage = command.cooldown;
 
       if (cooldownUsage) {
@@ -62,9 +60,6 @@ module.exports = EventModule({
       const cooldowns = client.cooldowns;
       let actionId = `prefixCommand_${cmd}`;
 
-      /**
-       * @type {import('../utils/types.d.ts').InternalCooldownConfig}
-       */
       const cooldownUsage = {
         cooldownType: usage.cooldownType,
         duration: usage.duration,
@@ -74,7 +69,7 @@ module.exports = EventModule({
         channelId: message.channelId
       };
       const result = await cooldowns.start(cooldownUsage);
-      if (result === false) return client.log.warn(`Cooldown returned:`, false);
+      if (result === false) return client.log.warn(`Cooldown returned: false`);
       if (typeof result === 'object') {
         await client.users.cache
           .get(Array.isArray(Owners) ? Owners[0] : Owners)
