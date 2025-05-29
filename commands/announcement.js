@@ -1,4 +1,4 @@
-const { CommandModule } = require('../utils');
+const { CommandModule, CommandType } = require('../utils');
 const {
   ChannelType,
   ActionRowBuilder,
@@ -11,6 +11,7 @@ const {
 module.exports = CommandModule({
   name: 'announce',
   description: 'announcement command',
+  type: CommandType.Slash,
   options: [
     {
       name: 'channel',
