@@ -23,7 +23,7 @@ const client = new DTKExtendedClient({
      */
     errorMessage: '{FEATURE} is on cooldown for {TIME}'
   },
-  browser: true //true - Mobile; false - Web
+  appearMobile: true //true - Mobile; false - Web
 });
 
 module.exports = client;
