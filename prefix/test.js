@@ -1,5 +1,4 @@
-const { CommandModule, CommandType } = require('../utils');
-const { CooldownTypes } = require('../utils/types');
+const { CommandModule, CommandType, CooldownTypes } = require('../utils');
 
 module.exports = CommandModule({
   name: 'test', //required
