@@ -1,17 +1,28 @@
 import type { Document, ConnectOptions } from 'mongoose';
 import {
   APIApplicationCommandBasicOption,
+  APIApplicationCommandOptionBase,
   ApplicationCommandOptionType,
   AutocompleteInteraction,
   BaseApplicationCommandOptionsData,
+  ButtonInteraction,
+  ChannelSelectMenuInteraction,
+  ChatInputCommandInteraction,
   Client,
   ClientEvents,
-  GatewayIntentBits
+  GatewayIntentBits,
+  MentionableSelectMenuInteraction,
+  Message,
+  MessageContextMenuCommandInteraction,
+  ModalSubmitInteraction,
+  RoleSelectMenuInteraction,
+  StringSelectMenuInteraction,
+  UserContextMenuCommandInteraction,
+  UserSelectMenuInteraction
 } from 'discord.js';
-import Logger from './Logger';
-import Cooldowns from './Cooldowns';
+import { Cooldowns, Logging as Logger } from '.';
+export type Awaitable<T> = T | PromiseLike<T>;
 
-/******************TYPES********************/
 export interface InternalCooldownConfig {
   cooldownType: CooldownTypes;
   duration: number | [number, 's' | 'm' | 'd' | 'h'];
@@ -38,7 +49,6 @@ export const cooldownDurations = {
 };
 
 export type CooldownUsage = Omit<InternalCooldownConfig, 'userId' | 'actionId' | 'guildId' | 'channelId'>;
-/*******************************************/
 
 export interface ICooldown extends Document {
   _id: string;
@@ -56,7 +66,7 @@ export interface DTKAutocompleteData extends Omit<BaseApplicationCommandOptionsD
     | ApplicationCommandOptionType.String
     | ApplicationCommandOptionType.Number
     | ApplicationCommandOptionType.Integer;
-  execute: (client: import('.').DTKExtendedClient, interaction: AutocompleteInteraction) => PromiseLike<unknown>;
+  execute: (client: import('.').DTKExtendedClient, interaction: AutocompleteInteraction) => Awaitable<unknown>;
 }
 
 export type DTKOptionsData =
@@ -65,7 +75,7 @@ export type DTKOptionsData =
   | APIApplicationCommandBasicOption
   | DTKAutocompleteData;
 
-export interface DTKSubCommandData extends APIApplicationCommandOptionBase<ApplicationCommandOptionType.Subcommand> {
+export interface DTKSubCommandData extends APIApplicationCommandOptionBasee<ApplicationCommandOptionType.Subcommand> {
   type: ApplicationCommandOptionType.Subcommand;
   options?: DTKOptionsData[];
 }
@@ -85,16 +95,16 @@ export interface DTKSubCommandGroupData extends BaseApplicationCommandOptionsDat
  * @property {boolean} [partials] - Whether to enable partial structures for certain Discord objects.
  * @property {boolean} [enableLogging] - Whether to enable logging for the bot.
  * @property {DTKCooldownConfig} [cooldowns] - Configuration for command/component cooldowns.
- * @property {boolean} [browser] - Whether to display the bot's status as Mobile (iOS) or Web.
+ * @property {boolean} [appearMobile] - Whether to display the bot's status as Mobile (iOS) or Web.
  */
 export interface DTKClientOptions {
-  mongoOptions: ConnectOptions; //Options for connecting to the MongoDB database.
-  intents: Array<keyof typeof GatewayIntentBits>; // List of intents required by the bot.
-  myIntents: Array<keyof typeof GatewayIntentBits>; // Additional intents to include for the bot.
-  partials?: boolean; // Whether to enable partial structures for certain Discord objects.
-  enableLogging?: boolean; // Whether to enable logging for the bot.
-  cooldowns?: DTKCooldownConfig; // Configuration for command/component cooldowns.
-  browser?: boolean; // Whether to display the bot's status as Mobile (iOS) or Web.
+  mongoOptions: ConnectOptions;
+  intents: Array<keyof typeof GatewayIntentBits>;
+  myIntents: Array<keyof typeof GatewayIntentBits>;
+  partials?: boolean;
+  enableLogging?: boolean;
+  cooldowns?: DTKCooldownConfig;
+  appearMobile?: boolean;
 }
 
 /**
@@ -106,39 +116,123 @@ export interface DTKClientOptions {
  * @property {string} [errorMessage] - Custom error message to display when a cooldown is active.
  */
 export interface DTKCooldownConfig {
-  enabled: boolean; // Whether cooldowns are enabled.
-  botOwnersBypass?: boolean; // Whether bot owners can bypass cooldowns.
-  errorMessage?: string; // Custom error message to display when a cooldown is active.
+  enabled: boolean;
+  botOwnersBypass?: boolean;
+  errorMessage?: string;
 }
-/**
- * This interface extends the Discord.js Client class to include additional properties and methods specific to the DTK framework.
- * It includes properties for the bot's owner, client ID, and a method to get the bot's owner.
- * @interface DTKExtendedClient
- * @extends {Client}
- * @property {boolean} browser - Whether to display the bot's status as Mobile (iOS) or Web.
- * @property {boolean} isCooldownEnabled - Whether cooldowns are enabled.
- * @property {Map} texts - A map of text resources used by the bot.
- * @property {Map} aliases - A map of command aliases.
- * @property {Map} commands - A map of commands registered with the bot.
- * @property {Cooldowns} [cooldowns] - An instance of the Cooldowns class, if cooldowns are enabled.
- * @property {Map} cache - A map for caching various data.
- * @property {Map} buttons - A map of button interactions.
- * @property {Map} modals - A map of modal interactions.
- * @property {Map} menus - A map of menu interactions.
- * @property {Map} events - A map of event handlers.
- * @property {Logger} log - An instance of the Logger class for logging messages.
- */
-export interface DTKExtendedClient extends Client {
-  browser: boolean;
-  isCooldownEnabled: boolean;
-  texts: Map;
-  aliases: Map;
-  commands: Map;
-  cooldowns?: Cooldowns;
-  cache: Map;
-  buttons: Map;
-  modals: Map;
-  menus: Map;
-  events: Map;
-  log: Logger;
+
+export type Command = SlashCommandModule | UserContextMenuCommandModule | MessageContextMenuCommandModule;
+
+export type Menu =
+  | StringSelectModule
+  | UserSelectModule
+  | RoleSelectModule
+  | MentionableSelectModule
+  | ChannelSelectModule;
+
+export interface EventModule<K extends keyof ClientEvents> {
+  name: K;
+  once?: boolean;
+  execute: (client: DTKExtendedClient, ...args: ClientEvents[K]) => Awaitable<unknown>;
 }
+
+export enum ComponentType {
+  Button = 'Button',
+  Modal = 'Modal',
+  StringSelect = 'StringSelect',
+  UserSelect = 'UserSelect',
+  RoleSelect = 'RoleSelect',
+  MentionableSelect = 'MentionableSelect',
+  ChannelSelect = 'ChannelSelect'
+}
+
+export interface BaseComponentModule {
+  customId: string;
+  cooldown?: CooldownUsage;
+}
+export interface ButtonModule extends BaseComponentModule {
+  type: ComponentType.Button;
+  execute: (client: DTKExtendedClient, interaction: ButtonInteraction, args: string[]) => Awaitable<unknown>;
+}
+
+export interface StringSelectModule extends BaseComponentModule {
+  type: ComponentType.StringSelect;
+  execute: (client: DTKExtendedClient, interaction: StringSelectMenuInteraction, args: string[]) => Awaitable<unknown>;
+}
+
+export interface UserSelectModule extends BaseComponentModule {
+  type: ComponentType.UserSelect;
+  execute: (client: DTKExtendedClient, interaction: UserSelectMenuInteraction, args: string[]) => Awaitable<unknown>;
+}
+
+export interface RoleSelectModule extends BaseComponentModule {
+  customId: string;
+  type: ComponentType.RoleSelect;
+  cooldown?: CooldownUsage;
+  execute: (client: DTKExtendedClient, interaction: RoleSelectMenuInteraction, args: string[]) => Awaitable<unknown>;
+}
+
+export interface MentionableSelectModule extends BaseComponentModule {
+  type: ComponentType.MentionableSelect;
+  execute: (
+    client: DTKExtendedClient,
+    interaction: MentionableSelectMenuInteraction,
+    args: string[]
+  ) => Awaitable<unknown>;
+}
+
+export interface ChannelSelectModule extends BaseComponentModule {
+  type: ComponentType.ChannelSelect;
+  execute: (client: DTKExtendedClient, interaction: ChannelSelectMenuInteraction, args: string[]) => Awaitable<unknown>;
+}
+
+export interface ModalModule extends BaseComponentModule {
+  type: ComponentType.Modal;
+  execute: (client: DTKExtendedClient, interaction: ModalSubmitInteraction, args: string[]) => Awaitable<unknown>;
+}
+
+export enum CommandType {
+  Slash = 'Slash',
+  Text = 'Text',
+  CtxMsg = 'ContextMessage',
+  CtxUser = 'ContextUser'
+}
+
+type RequiredRoles = { all?: boolean; roles: string[] } | false | undefined;
+type DeniedRoles = string[] | false | undefined;
+
+export interface BaseCommandModule {
+  name: string;
+  dm_permission?: boolean;
+  admin?: boolean;
+  dev?: boolean;
+  owner?: boolean;
+  requiredRoles?: RequiredRoles;
+  deniedRoles?: DeniedRoles;
+  cooldown?: CooldownUsage;
+}
+export interface SlashCommandModule extends BaseCommandModule {
+  description: string;
+  type: CommandType.Slash;
+  options: DTKOptionsData[];
+  execute: (client: DTKExtendedClient, interaction: ChatInputCommandInteraction) => Awaitable<unknown>;
+}
+
+export interface TextCommandModule extends BaseCommandModule {
+  description: string;
+  type: CommandType.Text;
+  aliases: string[];
+  execute: (client: DTKExtendedClient, interaction: Message<boolean>) => Awaitable<unknown>;
+}
+
+export interface UserContextMenuCommandModule extends BaseCommandModule {
+  type: CommandType.CtxUser;
+  execute: (client: DTKExtendedClient, interaction: UserContextMenuCommandInteraction) => Awaitable<unknown>;
+}
+
+export interface MessageContextMenuCommandModule extends BaseCommandModule {
+  type: CommandType.CtxMsg;
+  execute: (client: DTKExtendedClient, interaction: MessageContextMenuCommandInteraction) => Awaitable<unknown>;
+}
+
+export type Module = Command | ButtonModule | ModalModule | Menu;

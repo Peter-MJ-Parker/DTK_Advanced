@@ -12,6 +12,7 @@ module.exports = client => {
   const commands = [];
   const devCommands = [];
   const commandNames = [];
+  const commandMap = new Map();
 
   for (const [_, command] of client.commands) {
     command.dm_permission ??= false;

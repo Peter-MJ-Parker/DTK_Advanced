@@ -233,8 +233,14 @@ const ComponentType = Object.freeze({
  *
  * @typedef {ButtonModuleOptions | StringSelectModuleOptions | UserSelectModuleOptions | RoleSelectModuleOptions | MentionableSelectModuleOptions | ChannelSelectModuleOptions | ModalModuleOptions} ComponentModuleOptions
  *
-] * @param {ComponentModuleOptions} mod
+ * @param {ComponentModuleOptions} mod
  * @returns {ComponentModuleOptions}
+ */
+
+/**
+ *
+ * @param {import('./types.d.ts').ComponentModuleOptions} mod
+ * @returns
  */
 const ComponentModule = mod => {
   if (!mod.customId || typeof mod.execute !== 'function' || !mod.type) {
@@ -249,10 +255,36 @@ const ComponentModule = mod => {
   };
 };
 
+/**
+ * Checks if any of the args in the array contain a user ID
+ * @param {Discord.Interaction} interaction - The interaction object
+ * @param {string[]} args - The array of arguments to check
+ * @returns {boolean} True if any of the args include a valid user ID, otherwise false
+ */
+const containsUserId = (interaction, args) => {
+  if (!interaction || !Array.isArray(args)) {
+    throw new Error('Invalid parameters passed to containsUserId.');
+  }
+
+  return args.some(arg => {
+    try {
+      const deconstructed = Discord.SnowflakeUtil.deconstruct(arg);
+      return (
+        deconstructed &&
+        deconstructed.timestamp > 0 &&
+        (interaction.client.users.cache.has(arg) || interaction.guild?.members.cache.has(arg))
+      );
+    } catch {
+      return false;
+    }
+  });
+};
+
 module.exports = {
   CommandModule,
   EventModule,
   ComponentModule,
   ComponentType,
-  CommandType
+  CommandType,
+  containsUserId
 };

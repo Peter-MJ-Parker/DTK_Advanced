@@ -1,10 +1,8 @@
 const { BOT_OWNER_ID } = process.env;
-const { handleAutocomplete } = require('./Autocomplete.js');
 const CheckIntents = require('./CheckIntents.js');
 const ComponentLoader = require('./ComponentLoader.js');
 const EventLoader = require('./EventLoader.js');
 const DTKExtendedClient = require('./Client.js');
-const InteractionHandler = require('./InteractionHandler.js');
 const Logging = require('./Logger.js');
 const MongoConnect = require('./MongoConnect.js');
 const ReadFolder = require('./ReadFolder.js');
@@ -18,16 +16,23 @@ const Cooldowns = require('./Cooldowns.js');
  */
 const Logger = enabled => new Logger({ enabled });
 
-const { CommandModule, ComponentModule, ComponentType, EventModule, CommandType } = require('./Modules.js');
+const {
+  CommandModule,
+  ComponentModule,
+  ComponentType,
+  EventModule,
+  CommandType,
+  containsUserId
+} = require('./Modules.js');
 const { TextInputBuilder, ActionRowBuilder } = require('discord.js');
 
 const Owners = BOT_OWNER_ID.includes(',') ? BOT_OWNER_ID.split(',') : BOT_OWNER_ID;
 /**
  *
  * @param {string} userId
- * @returns
+ * @returns {boolean}
  */
-const split = userId => (Array.isArray(Owners) ? Owners.includes(userId) : Owners);
+const isOwner = userId => (Array.isArray(Owners) ? Owners.includes(userId) : userId === Owners);
 
 /**
  * @param {string} string
@@ -73,13 +78,14 @@ module.exports = {
   ComponentModule,
   ComponentType,
   ComponentLoader,
+  containsUserId,
   Cooldowns,
   createModal,
   EventLoader,
   EventModule,
   DTKExtendedClient,
-  InteractionHandler,
-  handleAutocomplete,
+  isOwner,
+  Logger,
   Logger,
   MongoConnect,
   Owners,
