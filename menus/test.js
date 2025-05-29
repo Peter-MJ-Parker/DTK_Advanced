@@ -4,7 +4,9 @@ module.exports = ComponentModule({
   customId: 'test',
   type: ComponentType.StringSelect,
   execute: async (client, interaction, args) => {
-    client.log.info();
-    const [i] = args;
+    return await interaction.reply({
+      content: 'SelectMenu interaction works.',
+      flags: 64
+    });
   }
 });

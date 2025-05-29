@@ -1,6 +1,5 @@
-const { CommandModule, CommandType } = require('../utils');
-const { ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationCommandOptionType } = require('discord.js');
-const { CooldownTypes } = require('../utils/types');
+const { CommandModule, CommandType, CooldownTypes } = require('../utils');
+const { ApplicationCommandOptionType } = require('discord.js');
 
 module.exports = CommandModule({
   /**
@@ -47,7 +46,11 @@ module.exports = CommandModule({
        */
       execute: async (client, interaction) => {
         //respond to the autocomplete interaction
-        await interaction.respond([{ name: '', value: '' }]);
+        await interaction.respond([
+          { name: 'buttons', value: 'buttons' },
+          { name: 'modal', value: 'modal' },
+          { name: 'menu', value: 'menu' }
+        ]);
       }
     }
   ],
@@ -70,22 +73,6 @@ module.exports = CommandModule({
    * EXECUTE FUNCTION IS ALWAYS REQUIRED
    */
   execute: async (client, interaction) => {
-    const auto = interaction.options.getString('action');
-
-    const { user } = interaction;
-    const buttons = [
-      new ActionRowBuilder({
-        components: ['🗳️|menu', '📝|modal'].map(choice => {
-          const [emoji, name] = choice.split('|');
-          return new ButtonBuilder({
-            custom_id: `test:from_command/${name}/${user.id}`,
-            emoji,
-            style: ButtonStyle.Primary,
-            label: name
-          });
-        })
-      })
-    ];
-    return await interaction.reply({ components: buttons });
+    return await interaction.reply({ content: 'Test slash command works', flags: 64 });
   }
 });

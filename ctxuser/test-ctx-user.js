@@ -6,7 +6,7 @@ module.exports = CommandModule({
   execute: async (client, interaction) => {
     await interaction.reply({
       content: 'This is a test context user command!',
-      ephemeral: true
+      flags: 64
     });
   }
 });
