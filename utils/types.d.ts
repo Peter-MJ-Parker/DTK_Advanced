@@ -8,7 +8,6 @@ import {
   ButtonInteraction,
   ChannelSelectMenuInteraction,
   ChatInputCommandInteraction,
-  Client,
   ClientEvents,
   GatewayIntentBits,
   MentionableSelectMenuInteraction,
@@ -20,7 +19,6 @@ import {
   UserContextMenuCommandInteraction,
   UserSelectMenuInteraction
 } from 'discord.js';
-import { Cooldowns, Logging as Logger } from '.';
 export type Awaitable<T> = T | PromiseLike<T>;
 
 export interface InternalCooldownConfig {
@@ -75,7 +73,7 @@ export type DTKOptionsData =
   | APIApplicationCommandBasicOption
   | DTKAutocompleteData;
 
-export interface DTKSubCommandData extends APIApplicationCommandOptionBasee<ApplicationCommandOptionType.Subcommand> {
+export interface DTKSubCommandData extends APIApplicationCommandOptionBase<ApplicationCommandOptionType.Subcommand> {
   type: ApplicationCommandOptionType.Subcommand;
   options?: DTKOptionsData[];
 }
@@ -121,7 +119,11 @@ export interface DTKCooldownConfig {
   errorMessage?: string;
 }
 
-export type Command = SlashCommandModule | UserContextMenuCommandModule | MessageContextMenuCommandModule;
+export type CommandModule =
+  | SlashCommandModule
+  | UserContextMenuCommandModule
+  | MessageContextMenuCommandModule
+  | TextCommandModule;
 
 export type Menu =
   | StringSelectModule
@@ -190,6 +192,15 @@ export interface ModalModule extends BaseComponentModule {
   type: ComponentType.Modal;
   execute: (client: DTKExtendedClient, interaction: ModalSubmitInteraction, args: string[]) => Awaitable<unknown>;
 }
+
+export type ComponentModule =
+  | ButtonModule
+  | ModalModule
+  | StringSelectModule
+  | UserSelectModule
+  | RoleSelectModule
+  | MentionableSelectModule
+  | ChannelSelectModule;
 
 export enum CommandType {
   Slash = 'Slash',

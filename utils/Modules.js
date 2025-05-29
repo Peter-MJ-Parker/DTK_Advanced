@@ -1,19 +1,10 @@
 const Discord = require('discord.js');
-const { DTKExtendedClient } = require('.');
+const { CommandType, ComponentType, CooldownTypes } = require('./types.d.ts');
 
 /**
  * @template {keyof Discord.ClientEvents} K
- * @typedef {Object} EventModuleOptions
- * @property {K} name - The name of the event
- * @property {boolean} [once] - Whether to run only once
- * @property {(client: DTKExtendedClient, ...args: Discord.ClientEvents[K]) => import('discord.js').Awaitable<unknown>} execute
- */
-
-/**
- * Creates an event module with proper typing for Discord.js events
- * @template {keyof Discord.ClientEvents} K
- * @param {EventModuleOptions<K>} options - The event module options
- * @returns {EventModuleOptions<K>} The validated event module
+ * @param {import('./types.d.ts').EventModule<K>} options
+ * @returns
  */
 const EventModule = options => {
   if (!options.name || typeof options.execute !== 'function') {
@@ -28,87 +19,8 @@ const EventModule = options => {
 };
 
 /**
- * Enum-like object for CommandType
- * @readonly
- * @enum {string} CommandType
- * @property {string} Slash - Represents a slash command (application command)
- * @property {string} Text - Represents a text command
- * @property {string} CtxMsg - Represents a context message menu command
- * @property {string} CtxUser - Represents a context user menu command
- */
-const CommandType = Object.freeze({
-  Slash: 'Slash',
-  Text: 'Text',
-  CtxMsg: 'ContextMessage',
-  CtxUser: 'ContextUser'
-});
-
-/**
- * @typedef {Object} SlashCommandModuleOptions
- * @property {string} name
- * @property {string} description
- * @property {typeof CommandType.Slash} type
- * @property {import('./types.d.ts').DTKOptionsData[]} options
- * @property {boolean | undefined} dm_permission
- * @property {boolean | undefined} admin
- * @property {boolean | undefined} dev
- * @property {boolean | undefined} owner
- * @property {{ all?: boolean; roles: string[] } | false | undefined} requiredRoles
- * @property {string[] | false | undefined} deniedRoles
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.ChatInputCommandInteraction) => import('discord.js').Awaitable<unknown>} execute
- */
-
-/**
- * @typedef {Object} TextCommandModuleOptions
- * @property {string} name
- * @property {string} description
- * @property {typeof CommandType.Text} type
- * @property {string[]} aliases
- * @property {boolean | undefined} admin
- * @property {boolean | undefined} dev
- * @property {boolean | undefined} owner
- * @property {{ all?: boolean; roles: string[] } | false | undefined} requiredRoles
- * @property {string[] | false | undefined} deniedRoles
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, message: Discord.Message<boolean>) => Awaitable<unknown>} execute
- */
-
-/**
- * @typedef {Object} UserContextMenuCommandModuleOptions
- * @property {string} name
- * @property {typeof CommandType.CtxUser} type
- * @property {boolean | undefined} dm_permission
- * @property {boolean | undefined} admin
- * @property {boolean | undefined} dev
- * @property {boolean | undefined} owner
- * @property {{ all?: boolean; roles: string[] } | false | undefined} requiredRoles
- * @property {string[] | false | undefined} deniedRoles
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.UserContextMenuCommandInteraction, args: string[]) => Awaitable<unknown>} execute
- */
-
-/**
- * @typedef {Object} MessageContextMenuCommandModuleOptions
- * @property {string} name
- * @property {typeof CommandType.CtxMsg} type
- * @property {boolean | undefined} dm_permission
- * @property {boolean | undefined} admin
- * @property {boolean | undefined} dev
- * @property {boolean | undefined} owner
- * @property {{ all?: boolean; roles: string[] } | false | undefined} requiredRoles
- * @property {string[] | false | undefined} deniedRoles
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.MessageContextMenuCommandInteraction, args: string[]) => Awaitable<unknown>} execute
- */
-
-/**
- * @typedef {SlashCommandModuleOptions | TextCommandModuleOptions | UserContextMenuCommandModuleOptions | MessageContextMenuCommandModuleOptions} CommandModuleOptions
- */
-
-/**
- * @param {CommandModuleOptions} mod
- * @returns {CommandModuleOptions}
+ * @param {import('./types.d.ts').CommandModule} mod
+ * @returns
  */
 const CommandModule = mod => {
   if (!mod.name || typeof mod.execute !== 'function') {
@@ -167,90 +79,18 @@ const CommandModule = mod => {
 };
 
 /**
- * Enum-like object for ComponentType
- * @readonly
- * @enum {string} ComponentType
- * @property {string} Button - Represents a Button
- * @property {string} Modal - Represents a Modal
- * @property {string} StringSelect - Represents a string select menu
- * @property {string} UserSelect - Represents a user select menu
- * @property {string} RoleSelect - Represents a role select menu
- * @property {string} MentionableSelect - Represents a mentionable select menu
- * @property {string} ChannelSelect - Represents a channel select menu
- */
-const ComponentType = Object.freeze({
-  Button: 'Button',
-  Modal: 'Modal',
-  StringSelect: 'StringSelect',
-  UserSelect: 'UserSelect',
-  RoleSelect: 'RoleSelect',
-  MentionableSelect: 'MentionableSelect',
-  ChannelSelect: 'ChannelSelect'
-});
-
-/**
- * @typedef {Object} ButtonModuleOptions
- * @property {string} customId
- * @property {typeof ComponentType.Button} type
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.ButtonInteraction, args: string[]) => Awaitable<unknown>} execute
- *
- * @typedef {Object} StringSelectModuleOptions
- * @property {string} customId
- * @property {typeof ComponentType.StringSelect} type
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.StringSelectMenuInteraction, args: string[]) => Awaitable<unknown>} execute
- *
- * @typedef {Object} UserSelectModuleOptions
- * @property {string} customId
- * @property {typeof ComponentType.UserSelect} type
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.UserSelectMenuInteraction, args: string[]) => Awaitable<unknown>} execute
- *
- * @typedef {Object} RoleSelectModuleOptions
- * @property {string} customId
- * @property {typeof ComponentType.RoleSelect} type
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.RoleSelectMenuInteraction, args: string[]) => Awaitable<unknown>} execute
- *
- * @typedef {Object} MentionableSelectModuleOptions
- * @property {string} customId
- * @property {typeof ComponentType.MentionableSelect} type
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.MentionableSelectMenuInteraction, args: string[]) => Awaitable<unknown>} execute
- *
- * @typedef {Object} ChannelSelectModuleOptions
- * @property {string} customId
- * @property {typeof ComponentType.ChannelSelect} type
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.ChannelSelectMenuInteraction, args: string[]) => Awaitable<unknown>} execute
- *
- * @typedef {Object} ModalModuleOptions
- * @property {string} customId
- * @property {typeof ComponentType.Modal} type
- * @property {import('./types.d.ts').CooldownUsage} [cooldown]
- * @property {(client: DTKExtendedClient, interaction: Discord.ModalSubmitInteraction, args: string[]) => Awaitable<unknown>} execute
- *
- * @typedef {ButtonModuleOptions | StringSelectModuleOptions | UserSelectModuleOptions | RoleSelectModuleOptions | MentionableSelectModuleOptions | ChannelSelectModuleOptions | ModalModuleOptions} ComponentModuleOptions
- *
- * @param {ComponentModuleOptions} mod
- * @returns {ComponentModuleOptions}
- */
-
-/**
- *
- * @param {import('./types.d.ts').ComponentModuleOptions} mod
+ * @param {import('./types.d.ts').ComponentModule} mod
  * @returns
  */
 const ComponentModule = mod => {
-  if (!mod.customId || typeof mod.execute !== 'function' || !mod.type) {
+  if (!mod.customId || typeof mod.execute !== 'function') {
     throw new Error(`ComponentModule: ${mod.customId} requires customId, type, and execute function.`);
   }
 
   return {
     customId: mod.customId,
+    cooldown: mod.cooldown,
     type: mod.type,
-    cooldown: mod.cooldown ?? undefined,
     execute: mod.execute
   };
 };
