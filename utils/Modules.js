@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const { CommandType, ComponentType, CooldownTypes } = require('./types.d.ts');
+const { CommandType, ComponentType } = require('./types.d.ts');
 
 /**
  * @template {keyof Discord.ClientEvents} K
